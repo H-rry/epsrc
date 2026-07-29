@@ -1,19 +1,45 @@
+#define _USE_MATH_DEFINES
+
 #include <iostream>
 #include <vector>
 #include <Eigen/Sparse>
 #include <cmath>
 
+// AMGCL Headers
+#include <amgcl/adapter/eigen.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/make_solver.hpp>
+#include <amgcl/amg.hpp>
+#include <amgcl/coarsening/smoothed_aggregation.hpp>
+#include <amgcl/relaxation/spai0.hpp>
+#include <amgcl/solver/bicgstab.hpp> // Or cg.hpp, gmres.hpp
+
+// pybind Headers
+#include <pybind11/pybind11.h>
+#include <pybind11/eigen.h>
+
 using SparseMat = Eigen::SparseMatrix<double, Eigen::RowMajor>;
 
-class MatrixBuilder {
-public:
-    explicit MatrixBuilder(int N) : N_(N), total_cols_(5 * N + 3) {}
+// Define AMGCL Solver Type using C++ template composition
+using Backend = amgcl::backend::builtin<double>;
+using AMGCL_Solver = amgcl::make_solver<
+    amgcl::amg<
+        Backend,
+        amgcl::coarsening::smoothed_aggregation,
+        amgcl::relaxation::spai0
+    >,
+    amgcl::solver::bicgstab<Backend>
+>;
 
-    SparseMat assemble() {
+
+class SystemBuilder {
+public:
+    explicit SystemBuilder(int N) : N_(N), total_cols_(5 * N + 3) {}
+
+    SparseMat assemble_A() {
         int total_rows = 5 * N_ + 3;
-        double k = 0.5;
-        double k_h = 0.5;
-        double lambda = 1;
+        double k = 1;
+        double lambda = 1; // ratio of viscocity of the fluids. i.e. don't pick one. [0.2, 0.5, 2, 5]
 
         SparseMat A(total_rows, total_cols_);
 
@@ -104,10 +130,29 @@ public:
         // Block Row 3
         add(A, 5 * N_ + 2, 2, 1.0);
 
-        // 3. Finalize sparse structure
+    
+        std::cout << "Successfully assembled " << A.rows() << "x" << A.cols() 
+              << " matrix with " << A.nonZeros() << " non-zero entries.\n";
+
         A.makeCompressed();
         return A;
     }
+
+    Eigen::VectorXd assemble_b() {
+    int total_rows = 5 * N_ + 3;
+    double Ma = 1.0;
+
+    Eigen::VectorXd b = Eigen::VectorXd::Zero(total_rows);
+
+    for (int i = 1; i < N_; ++i) {
+        b(i) = Ma * std::pow(0.1, i + 1);
+    }
+
+    b(5 * N_ + 2) = -(1.0 / 12.0) * M_1_PI;
+
+    return b;
+}
+
 
     // Helper to print full dense grid (for small N <= 3)
     void printDense(const SparseMat& A) const {
@@ -115,7 +160,7 @@ public:
         std::cout << Eigen::MatrixXd(A) << "\n";
     }
 
-    // Helper to print sparse non-zero elements 
+    // Helper to print sparse non-zero elements
     void printSparseNonZeros(const SparseMat& A) const {
         std::cout << "\n--- Non-Zero Entries List ---\n";
         for (int r = 0; r < A.rows(); ++r) {
@@ -139,23 +184,48 @@ private:
     int total_cols_;
 };
 
+Eigen::VectorXd Solve(SparseMat A, Eigen::VectorCd b){
+    boost::property_tree::ptree prm;
+    prm.put("solver.tol", 1e-8);     // Target relative residual tolerance
+    prm.put("solver.maxiter", 500);  // Max iterations
+
+    AMGCL_Solver solve(amgcl::adapter::eigen(A), prm);
+
+    int iters;
+    double error;
+
+    std::tie(iters, error) = solve(b, x);
+
+    std::cout << "AMGCL Convergence Status:\n";
+    std::cout << "  Iterations: " << iters << "\n";
+    std::cout << "  Achieved Error: " << error << "\n";
+}
+
+Eigen::VectorXd solve_system(int N) {
+    SystemBuilder builder(N);
+    SparseMat A = builder.assemble();
+    Eigen::VectorXd b = builder.assemble_b();
+
+    Eigen::VectorXd x = Eigen::VectorXd::Zero(b.size());
+    
+    Solve(A, b)
+
+    return x;
+}
+
+PYBIND11_MODULE(solver_module, m) {
+    m.def("solve_system", &solve_system, "Solves fluid system for given N");
+}
+
 int main(int argc, char* argv[]) {
     int N = 2; // Default small test size
     if (argc > 1) N = std::atoi(argv[1]);
 
-    MatrixBuilder builder(N);
-    SparseMat A = builder.assemble();
+    SystemBuilder builder(N);
+    SparseMat A = builder.assemble_A();
+    Eigen::VectorXd b = builder.assemble_b();
 
-    std::cout << "Successfully assembled " << A.rows() << "x" << A.cols() 
-              << " matrix with " << A.nonZeros() << " non-zero entries.\n";
-
-    if (N <= 3) {
-        builder.printDense(A);
-    }
-    else {
-        builder.printSparseNonZeros(A);
-
-    }
+    Solve(A, b);
 
     return 0;
 }

@@ -184,12 +184,14 @@ private:
     int total_cols_;
 };
 
-Eigen::VectorXd Solve(SparseMat A, Eigen::VectorXd b){
+Eigen::VectorXd Solve(const SparseMat& A, const Eigen::VectorXd& b){
     boost::property_tree::ptree prm;
     prm.put("solver.tol", 1e-8);     // Target relative residual tolerance
     prm.put("solver.maxiter", 500);  // Max iterations
 
     AMGCL_Solver solve(amgcl::adapter::eigen(A), prm);
+
+    Eigen::VectorXd x = Eigen::VectorXd::Zero(b.size());
 
     int iters;
     double error;
@@ -199,16 +201,16 @@ Eigen::VectorXd Solve(SparseMat A, Eigen::VectorXd b){
     std::cout << "AMGCL Convergence Status:\n";
     std::cout << "  Iterations: " << iters << "\n";
     std::cout << "  Achieved Error: " << error << "\n";
+
+    return x;
 }
 
 Eigen::VectorXd solve_system(int N) {
     SystemBuilder builder(N);
-    SparseMat A = builder.assemble();
+    SparseMat A = builder.assemble_A();
     Eigen::VectorXd b = builder.assemble_b();
 
-    Eigen::VectorXd x = Eigen::VectorXd::Zero(b.size());
-    
-    Solve(A, b);
+    Eigen::VectorXd x = Solve(A, b);
 
     return x;
 }

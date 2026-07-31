@@ -108,7 +108,7 @@ public:
         // n = 1  
             add(A, r, 0, 3.0 * std::pow(k, 2.0));
             add(A, r, 1, 3.0);
-            add(A, r, 2, 3.0 * std::pow(k, 1.0));
+            add(A, r, 2, 3.0 * std::pow(k, -1.0));
             add(A, r, 3, 3.0 * std::pow(k, -3.0));
             add(A, r, 5 * N_ + 2, -1.0);
         // n >= 2
@@ -208,7 +208,7 @@ Eigen::VectorXd solve_system(int N) {
 
     Eigen::VectorXd x = Eigen::VectorXd::Zero(b.size());
     
-    Solve(A, b)
+    Solve(A, b);
 
     return x;
 }

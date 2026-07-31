@@ -184,7 +184,7 @@ private:
     int total_cols_;
 };
 
-Eigen::VectorXd Solve(SparseMat A, Eigen::VectorCd b){
+Eigen::VectorXd Solve(SparseMat A, Eigen::VectorXd b){
     boost::property_tree::ptree prm;
     prm.put("solver.tol", 1e-8);     // Target relative residual tolerance
     prm.put("solver.maxiter", 500);  // Max iterations

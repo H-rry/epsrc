@@ -14,6 +14,9 @@ from squirmer_drop import surfactant
 from squirmer_drop import analytical_squirmer
 from squirmer_drop.paths import RUNS_DIR, critical_ma_dir, critical_ma_lambda_figures_dir
 
+# upper limit for the critical-Ma search
+MA_SEARCH_MAX = 1e4
+
 
 def extract_b_n(x, N):
     """Legendre coefficients b_n of the surface velocity u_theta(1, mu), from the outer field."""
@@ -48,7 +51,7 @@ def save_converged_data(c_n, x_fluid, N, k, lambda_val, Ma, Pe, mode='particle',
     print(f"Saved {csv_path}")
 
 
-def run_coupling_iteration(N=5, k=0.3, lambda_val=0.5, Ma=1.0, Pe=1.0, max_iter=100, tol=1e-6, omega=0.1, mode='particle', A_n=None, B_n=None):
+def run_coupling_iteration(N=5, k=0.3, lambda_val=0.5, Ma=1.0, Pe=1.0, max_iter=100, tol=1e-7, omega=0.1, mode='particle', A_n=None, B_n=None):
     """
     Iterate the flow and surfactant solves until ||c_n_new - c_n|| < tol, with
     under-relaxation factor omega. The converged state is saved and its boundary
@@ -202,14 +205,14 @@ def find_Ma_critical_point(lambda_val, k_val, vel_type='Us', A_n=None, B_n=None,
         err_high, solver_high, anal_high = evaluate_point(Ma_high)
         history[Ma_high] = (err_high, solver_high, anal_high)
         print(f"  Bracketing up: Ma={Ma_high:.4e} | Error={err_high:.3f}%")
-        while err_high < target_err and Ma_high < 200.0:
+        while err_high < target_err and Ma_high < MA_SEARCH_MAX:
             Ma_low = Ma_high
             err_low = err_high
             Ma_high *= 2.0
             err_high, solver_high, anal_high = evaluate_point(Ma_high)
             history[Ma_high] = (err_high, solver_high, anal_high)
             print(f"  Bracketing up: Ma={Ma_high:.4e} | Error={err_high:.3f}%")
-        if Ma_high >= 200.0 and err_high < target_err:
+        if Ma_high >= MA_SEARCH_MAX and err_high < target_err:
             print(f"Warning: error still < {target_err}% at Ma={Ma_high}")
             return Ma_high, err_high, solver_high, anal_high, history
 
@@ -282,7 +285,7 @@ def find_Ma_critical_squirmer(lambda_val, vel_type='Us', starting_ma=0.001):
         print(f"Bracketing up: Ma={Ma_high:.4e} | Error={err_high:.3f}%")
         history[Ma_high] = (err_high, solver_high, anal_high)
 
-        while err_high < 2.0 and Ma_high < 100.0:
+        while err_high < 2.0 and Ma_high < MA_SEARCH_MAX:
             Ma_low = Ma_high
             err_low = err_high
             Ma_high *= 2.0
@@ -290,7 +293,7 @@ def find_Ma_critical_squirmer(lambda_val, vel_type='Us', starting_ma=0.001):
             print(f"Bracketing up: Ma={Ma_high:.4e} | Error={err_high:.3f}%")
             history[Ma_high] = (err_high, solver_high, anal_high)
 
-        if Ma_high >= 100.0 and err_high < 2.0:
+        if Ma_high >= MA_SEARCH_MAX and err_high < 2.0:
             print(f"Warning: error still < 2% at Ma={Ma_high}")
             return Ma_high, history
 
@@ -397,7 +400,7 @@ def run_single_coupling(N, k, lambda_val, Ma, Pe, A_n, B_n, c_init=None, max_ite
     Returns (U_s, U_d, c_n, iterations, residual, converged).
     """
     if tol is None:
-        tol = 1e-4 if Pe >= 10.0 else 1e-5
+        tol = 1e-6 if Pe >= 10.0 else 1e-7
     if omega is None:
         omega = 0.02 if Pe >= 10.0 else 0.05
 

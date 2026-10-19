@@ -5,11 +5,10 @@ coefficients c_n matches the exact exponential representation of Gamma(mu).
 
 import os
 import numpy as np
-import scipy.integrate
 import matplotlib.pyplot as plt
 
 from squirmer_drop.stokes import get_legendre_and_derivs
-from squirmer_drop.surfactant import gamma_unscaled, gamma_scaled, get_c_n, solve_c_n
+from squirmer_drop.surfactant import C_0, gamma_scaled, get_c_n, get_gamma_0, solve_c_n
 from squirmer_drop.paths import VERIFICATION_FIGURES_DIR
 
 
@@ -21,9 +20,10 @@ def main():
     c_n = solve_c_n(b_n, Pe)
     print("c_n:", c_n)
 
-    result, _ = scipy.integrate.quad(gamma_unscaled, -1.0, 1.0, args=(b_n, Pe))
-    gamma_0 = 1.0 / result
+    gamma_0 = get_gamma_0(b_n, Pe)
     c_0 = get_c_n(0, b_n, gamma_0, Pe)
+    assert abs(c_0 - C_0) < 1e-12, f"mean concentration {c_0} != {C_0}"
+    print(f"c_0 = {c_0:.12f} (expected {C_0})")
 
     mew_plot = np.linspace(-1, 1, 300)
 

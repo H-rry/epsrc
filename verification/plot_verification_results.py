@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from squirmer_drop import stokes as fluid
+from squirmer_drop import analytical_squirmer
 from squirmer_drop.paths import VERIFICATION_DATA_DIR, VERIFICATION_FIGURES_DIR
 
 # plot style
@@ -138,17 +139,11 @@ def generate_squirmer_plots(fig_dir):
     A_1 = 0.1
     B_1 = 0.1
 
-    # 1. O(1) Swimmer and Drop velocities (Eq 4.3 and 4.4)
-    denom_0 = (6.0 * lambda_val - 6.0) * (k**5) + 9.0 * lambda_val + 6.0
-    U0_D = 10.0 * (k**3) * lambda_val * (A_1 + B_1) / denom_0
-    U0_S = (-12.0 * (lambda_val - 1.0) * (A_1 + B_1/2.0) * (k**5)
-            + 10.0 * (k**3) * (A_1 + B_1) * (lambda_val - 1.0)
-            - 3.0 * (A_1 - 2.0*B_1) * (lambda_val + 2.0/3.0)) / denom_0
-
-    # 2. O(Pe) Correction coefficients (Eq 4.5 and 4.6)
-    denom_1 = ((lambda_val - 1.0) * (k**5) + 1.5 * lambda_val + 1.0) ** 2
-    U1_D_coeff = -5.0 * lambda_val * (A_1 + B_1) * (k**3) * (1.0 - k**5) / (6.0 * denom_1)
-    U1_S_coeff = -25.0 * (k**3) * lambda_val * (1.0 - k) * (k + 1.0) * (A_1 + B_1) / (12.0 * denom_1)
+    # asymptotic U = U_0 + Pe * Ma * U_1 (U_1 per unit of the solver's Ma)
+    U0_D = analytical_squirmer.analytical_U_D(k, 0.0, lambda_val, A_1, B_1)
+    U0_S = analytical_squirmer.analytical_U_S(k, 0.0, lambda_val, A_1, B_1)
+    U1_D_coeff = analytical_squirmer.analytical_U_D(k, 1.0, lambda_val, A_1, B_1, Pe=1.0) - U0_D
+    U1_S_coeff = analytical_squirmer.analytical_U_S(k, 1.0, lambda_val, A_1, B_1, Pe=1.0) - U0_S
 
     # Solver values from sweeps
     UD_solver = []

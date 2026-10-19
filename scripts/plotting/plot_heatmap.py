@@ -3,6 +3,7 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 
+from squirmer_drop.analytical_squirmer import analytical_U_D
 from squirmer_drop.paths import RUNS_DIR, VERIFICATION_FIGURES_DIR
 
 def parse_squirmer_data():
@@ -92,13 +93,7 @@ def plot_heatmaps():
         Z_solver[l_idx, k_idx] = d['U_D']
 
         # Analytical U_D
-        denom_0 = (6.0 * l_val - 6.0) * (k_val**5) + 9.0 * l_val + 6.0
-        U0_D = 10.0 * (k_val**3) * l_val * (A_1 + B_1) / denom_0
-
-        denom_1 = ((l_val - 1.0) * (k_val**5) + 1.5 * l_val + 1.0) ** 2
-        U1_D_coeff = -5.0 * l_val * (A_1 + B_1) * (k_val**3) * (1.0 - k_val**5) / (6.0 * denom_1)
-
-        Z_anal[l_idx, k_idx] = U0_D + Pe * Ma * U1_D_coeff
+        Z_anal[l_idx, k_idx] = analytical_U_D(k_val, Ma, l_val, A_1, B_1, Pe=Pe)
 
     # Set up plotting mesh (Swapped X and Y)
     L, K = np.meshgrid(lambdas, ks)

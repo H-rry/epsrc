@@ -90,13 +90,13 @@ def find_Ma_critical_A1_B1(lambda_val, vel_type='Us', starting_ma=0.001):
         Ma_high = Ma_low * 2.0
         err_high, solver_high, anal_high = evaluate_Ma(Ma_high)
         history[Ma_high] = (err_high, solver_high, anal_high)
-        while err_high < 2.0 and Ma_high < 100.0:
+        while err_high < 2.0 and Ma_high < ch.MA_SEARCH_MAX:
             Ma_low = Ma_high
             err_low = err_high
             Ma_high *= 2.0
             err_high, solver_high, anal_high = evaluate_Ma(Ma_high)
             history[Ma_high] = (err_high, solver_high, anal_high)
-        if Ma_high >= 100.0 and err_high < 2.0:
+        if Ma_high >= ch.MA_SEARCH_MAX and err_high < 2.0:
             return Ma_high
 
     # Bisection

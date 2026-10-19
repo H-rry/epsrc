@@ -8,10 +8,16 @@ Integrating the surface advection-diffusion equation once gives
 where b_n are the Legendre coefficients of the surface velocity u_theta(1, mu) and
 Gamma_0 fixes the total amount of surfactant. The flow solver needs the Legendre
 coefficients c_n of Gamma, which are found here by quadrature.
+
+Gamma is scaled by (total amount of surfactant) / R^2, so the total amount on the drop
+is 1: 2 pi int_{-1}^{1} Gamma dmu = 1. The mean concentration, which is also the n = 0
+Legendre coefficient, is then c_0 = 1 / (4 pi) whatever the flow.
 """
 
 import numpy as np
 import scipy.integrate
+
+C_0 = 1.0 / (4.0 * np.pi)
 
 
 def gamma_scaled(mew, b_n, gamma_0, mode_n=0, Pe=1.0):
@@ -45,14 +51,16 @@ def get_c_n(n, b_n, gamma_0, Pe):
     return ((2*n + 1)/2) * val
 
 
-def solve_c_n(b_n, Pe):
-    """
-    Surfactant coefficients c_1..c_N for surface-velocity coefficients b_n, with
-    Gamma_0 chosen so that the mean surfactant concentration is 1/2.
-    """
-    N = len(b_n)
+def get_gamma_0(b_n, Pe):
+    """Gamma_0 such that int Gamma dmu = 2 C_0, i.e. the mean concentration is C_0."""
     result, _ = scipy.integrate.quad(gamma_unscaled, -1.0, 1.0, args=(b_n, Pe))
-    gamma_0 = 1.0 / result
+    return 2.0 * C_0 / result
+
+
+def solve_c_n(b_n, Pe):
+    """Surfactant coefficients c_1..c_N for surface-velocity coefficients b_n."""
+    N = len(b_n)
+    gamma_0 = get_gamma_0(b_n, Pe)
 
     n_modes = np.arange(1, N + 1)
     return get_c_n(n_modes, b_n, gamma_0, Pe)

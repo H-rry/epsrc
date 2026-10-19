@@ -1,10 +1,11 @@
 """
-Small-Pe asymptotic velocities of a squirmer at the centre of a surfactant-laden drop,
-to first order in Pe * Ma:  U = U_0 + Pe * Ma * U_1.
+Small-Pe asymptotic velocities of a squirmer at the centre of a surfactant-laden drop
+(Shaik, Vasani & Ardekani, J. Fluid Mech. 851, 2018), to first order in Pe:
+U = U_0 + Pe * Ma * U_1. Only the first squirming modes A_1 and B_1 enter.
 
-Only the first squirming modes A_1 and B_1 enter at this order.
+These are the formulas as given. Shaik et al. scale Gamma by its equilibrium value, so
+with the normalisation in surfactant.py the solver's O(Pe Ma) term is C_0 times theirs.
 """
-
 
 
 def analytical_U_S(k, Ma, lambd, A_1, B_1, Pe=0.1):

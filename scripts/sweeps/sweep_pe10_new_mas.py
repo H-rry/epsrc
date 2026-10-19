@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 """
-sweep_pe10_new_mas.py
-
-Targeted sweep script for Pe = 10.0 at new Marangoni numbers:
-    Ma in [0.01, 0.05]
-Appends results to:
-    data/ratio_sweeps/ratio_sweep_master.csv
-    data/ratio_sweeps/ratio_sweep_A1=1_B1=1.csv
-    data/ratio_sweeps/ratio_sweep_A1=0_B1=1.csv
+Adds Ma = 0.01 and 0.05 at Pe = 10 to the ratio sweeps (data/ratio_sweeps/).
 """
 
 import os
-import sys
 import time
 import csv
 import numpy as np
@@ -52,9 +44,7 @@ def run_pe10_targeted_sweeps():
     ks = np.round(np.linspace(0.05, 0.95, 19), 3)
     N = 5
 
-    print("=" * 80)
-    print(f" TARGETED SWEEP FOR Pe = {pe} WITH Ma IN {new_mas} ".center(80, "="))
-    print("=" * 80)
+    print(f"Pe = {pe}, Ma in {new_mas}")
 
     for config in configs:
         lbl = config["label"]

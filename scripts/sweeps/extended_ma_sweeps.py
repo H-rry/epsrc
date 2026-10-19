@@ -1,24 +1,15 @@
 #!/usr/bin/env python3
 """
-extended_ma_sweeps.py
-
-Runs extended Marangoni sweeps for larger and larger Ma values to discover
-the full dynamic range and saturation behavior of microhydrodynamic squirmers:
-  - Pe = 0.1 : Ma in [20.0, 50.0, 100.0]
-  - Pe = 1.0 : Ma in [2.0, 5.0, 15.0, 20.0]
-  - Pe = 10.0: Ma in [0.2, 2.0]
-Across:
-  - Modes: Neutral (A1=0, B1=1) and Pusher/Puller (A1=1, B1=1)
-  - Viscosity ratios: lambda in [0.1, 1.0, 10.0]
-  - Confinement: k in [0.05, 0.95] (19 points)
-
-Appends incrementally to:
-  data/ratio_sweeps/ratio_sweep_master.csv
-  data/ratio_sweeps/ratio_sweep_extended.csv
+Extends the ratio sweeps to larger Ma:
+  Pe = 0.1: Ma = 20, 50, 100
+  Pe = 1:   Ma = 2, 5, 15, 20
+  Pe = 10:  Ma = 0.2, 2
+for both squirmer modes, lambda = 0.1, 1, 10 and 19 values of k in [0.05, 0.95].
+Results are appended to data/ratio_sweeps/ratio_sweep_master.csv and
+ratio_sweep_extended.csv; points already in the master file are skipped.
 """
 
 import os
-import sys
 import time
 import csv
 import numpy as np
@@ -73,9 +64,7 @@ def run_extended_sweeps():
     ks = np.round(np.linspace(0.05, 0.95, 19), 3)
     N = 5
 
-    print("=" * 80)
-    print(" EXTENDED MARANGONI SWEEPS: LARGER Ma EXPLORATION ".center(80, "="))
-    print("=" * 80)
+    print("Extended Ma sweeps")
 
     total_sweeps = len(configs) * sum(len(mas) * len(lambdas) for mas in pe_ma_map.values())
     sweep_idx = 0
@@ -106,7 +95,7 @@ def run_extended_sweeps():
                     prod = pe * ma
                     needed = [k_val for k_val in ks if (lbl, pe, l_val, ma, k_val) not in existing_keys]
                     if not needed:
-                        print(f"[{sweep_idx}/{total_sweeps}] {lbl} | Pe={pe:4.1f} | lam={l_val:4.1f} | Ma={ma:5.1f} (Pe*Ma={prod:5.1f}) ... [CACHED]")
+                        print(f"[{sweep_idx}/{total_sweeps}] {lbl} | Pe={pe:4.1f} | lam={l_val:4.1f} | Ma={ma:5.1f} (Pe*Ma={prod:5.1f}) (cached)")
                         continue
 
                     t0 = time.time()
@@ -172,7 +161,7 @@ def run_extended_sweeps():
                     elapsed = time.time() - t0
                     print(f"Done ({conv_count}/{len(ks)} conv, {elapsed:.1f}s)")
 
-    print("\n[SUCCESS] Extended Marangoni sweeps completed!")
+    print("\nExtended Marangoni sweeps completed!")
 
 if __name__ == "__main__":
     run_extended_sweeps()

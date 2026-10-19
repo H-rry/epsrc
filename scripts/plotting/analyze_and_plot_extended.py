@@ -1,24 +1,18 @@
 #!/usr/bin/env python3
 """
-analyze_and_plot_extended.py
-
-Analyzes extended Marangoni sweeps, identifies optimal Ma ranges across all (Pe, lambda, mode) combinations,
-and generates comprehensive publication-quality figures:
-  1. Universal scaling collapse: U/U_clean vs Pe*Ma
-  2. Extended dynamic range plots for Pe in {0.1, 1.0, 10.0}
-  3. Critical Ma comparison: A_1 = 0 vs A_1 = 1 across (k, lambda)
-  4. Critical Ma vs Pe scaling log-log plots (proving Ma_c ~ 1/Pe)
-  5. 2D Heatmaps of Ma_c(k, lambda)
+Figures from the extended sweeps:
+  1. U/U_clean against Pe*Ma for all runs
+  2. ratio grids including the extended Ma values
+  3. critical Ma for A_1 = 0 vs A_1 = 1 over (k, lambda)
+  4. critical Ma against Pe (Ma_c ~ 1/Pe)
+Also prints a suggested Ma range for each (mode, Pe).
 """
 
 import os
-import sys
 import csv
-import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
-from matplotlib.ticker import ScalarFormatter
 
 from squirmer_drop.paths import RATIO_SWEEPS_DIR, CRITICAL_MA_GRID_DIR, CRITICAL_MA_DIR, RATIO_FIGURES_DIR
 
@@ -29,7 +23,7 @@ plots_dir = RATIO_FIGURES_DIR
 
 os.makedirs(plots_dir, exist_ok=True)
 
-# JFM Matplotlib styling
+# journal-style axes and fonts
 plt.rcParams.update({
     'font.family': 'sans-serif',
     'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica'],
@@ -84,7 +78,7 @@ def load_master_data():
 
 
 # =========================================================================
-# 1. UNIVERSAL SCALING COLLAPSE: U/U_clean vs Pe*Ma
+# UNIVERSAL SCALING COLLAPSE: U/U_clean vs Pe*Ma
 # =========================================================================
 def plot_universal_scaling_collapse(records):
     print("--> Generating Universal Scaling Collapse Plot...")
@@ -148,11 +142,11 @@ def plot_universal_scaling_collapse(records):
     out_png = os.path.join(plots_dir, "shaik_universal_scaling_collapse.png")
     plt.savefig(out_png, dpi=300)
     plt.close(fig)
-    print(f"  [SAVED] {out_png}")
+    print(f"  Saved {out_png}")
 
 
 # =========================================================================
-# 2. EXTENDED MASTER RATIO GRIDS (4 CAREFULLY SELECTED Ma VALUES PER PANEL)
+# EXTENDED MASTER RATIO GRIDS (4 CAREFULLY SELECTED Ma VALUES PER PANEL)
 # =========================================================================
 def plot_extended_master_grid(records, mode_label="A1=0_B1=1"):
     print(f"--> Generating Extended Master Grid for {mode_label}...")
@@ -233,11 +227,11 @@ def plot_extended_master_grid(records, mode_label="A1=0_B1=1"):
     out_png = os.path.join(plots_dir, f"shaik_ratio_master_grid_extended_{mode_label}.png")
     plt.savefig(out_png, dpi=300)
     plt.close(fig)
-    print(f"  [SAVED] {out_png}")
+    print(f"  Saved {out_png}")
 
 
 # =========================================================================
-# 3. CRITICAL Ma COMPARISON: A1=0 vs A1=1 ACROSS (k, lambda)
+# CRITICAL Ma COMPARISON: A1=0 vs A1=1 ACROSS (k, lambda)
 # =========================================================================
 def plot_critical_Ma_comparison():
     print("--> Generating Critical Ma Mode Comparison Plot...")
@@ -307,11 +301,11 @@ def plot_critical_Ma_comparison():
     out_png = os.path.join(plots_dir, "critical_Ma_mode_comparison_grid.png")
     plt.savefig(out_png, dpi=300)
     plt.close(fig)
-    print(f"  [SAVED] {out_png}")
+    print(f"  Saved {out_png}")
 
 
 # =========================================================================
-# 4. CRITICAL Ma vs Pe SCALING: LOG-LOG PROVING Ma_c ~ 1/Pe
+# CRITICAL Ma vs Pe SCALING: LOG-LOG PROVING Ma_c ~ 1/Pe
 # =========================================================================
 def plot_critical_Ma_vs_Pe_scaling():
     print("--> Generating Critical Ma vs Pe Scaling Plot...")
@@ -382,16 +376,14 @@ def plot_critical_Ma_vs_Pe_scaling():
     out_png = os.path.join(plots_dir, "critical_Ma_vs_Pe_universal_scaling.png")
     plt.savefig(out_png, dpi=300)
     plt.close(fig)
-    print(f"  [SAVED] {out_png}")
+    print(f"  Saved {out_png}")
 
 
 # =========================================================================
-# 5. RECOMMENDED Ma RANGES TABLE PRINTER
+# RECOMMENDED Ma RANGES TABLE PRINTER
 # =========================================================================
 def print_recommended_ranges(records):
-    print("\n" + "=" * 80)
-    print(" RECOMMENDED OPTIMAL Ma RANGES FOR PUBLICATION PLOTS ".center(80, "="))
-    print("=" * 80)
+    print("Recommended Ma ranges per (mode, Pe)")
     table_rows = [
         ("Pe = 0.1", "Weak Advection", "Ma in {0.1, 1.0, 10.0, 50.0}", "Pe*Ma in {0.01, 0.1, 1.0, 5.0}", "Full transition down to 25% clean drift"),
         ("Pe = 1.0", "Intermediate", "Ma in {0.1, 1.0, 5.0, 20.0}", "Pe*Ma in {0.1, 1.0, 5.0, 20.0}", "Near-uniform curve separation spanning 95% to 5% drift"),
@@ -402,7 +394,6 @@ def print_recommended_ranges(records):
         print(f"    Recommended Ma suite: {row[2]}")
         print(f"    Effective coupling   : {row[3]}")
         print(f"    Physical coverage    : {row[4]}\n")
-    print("=" * 80)
 
 def main():
     records = load_master_data()

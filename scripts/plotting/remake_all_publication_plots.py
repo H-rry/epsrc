@@ -1,25 +1,11 @@
 #!/usr/bin/env python3
 """
-remake_all_publication_plots.py
-
-Re-renders all publication figures replicating and extending Shaik et al. (2018) Fig. 1.
-Features:
-  - Exact JFM aesthetic (inward ticks on all 4 axes, serif typography, high-contrast palette).
-  - DIRECT IN-PLOT LABELS: Arrows and callouts for lambda = 10, lambda = 1, and lambda = 0.1
-    placed directly onto the curves for effortless readability.
-  - Direct annotations for Marangoni number progression (increasing Ma direction).
-  - Clean, compact framed inset legend boxes and Critical Ma_c annotations.
-  - Generates:
-      1. Single-Pe Ratio Figures (Pe = 0.1, 1.0, 10.0 for A1=0,B1=1 and A1=1,B1=1)
-      2. Master 3x2 Grid Figures with in-plot labels
-      3. Direct Normalized Velocity Figures (1-to-1 matching Shaik et al. Fig. 1 layout)
-      4. Diagnostic Pe=10.0 Side-by-Side Comparison Figures
+Ratio and velocity figures in the style of Shaik et al. (2018), Fig. 1, from
+data/ratio_sweeps/ratio_sweep_master.csv. Curves are labelled directly on the plot.
 """
 
 import os
-import sys
 import csv
-import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -118,7 +104,7 @@ def annotate_curve(ax, text, xy, xytext, color, fontsize=10.5, lw=1.3):
 
 
 # ==============================================================================
-# 1. REMAKE SINGLE-PE RATIO PLOTS WITH DIRECT LABELS
+# remake single-pe ratio plots with direct labels
 # ==============================================================================
 def plot_single_pe_ratios(records, mode_lbl, pe_val, optimized=True):
     fig, (ax_s, ax_d) = plt.subplots(1, 2, figsize=(13.5, 5.6), dpi=300)
@@ -179,9 +165,7 @@ def plot_single_pe_ratios(records, mode_lbl, pe_val, optimized=True):
     ax_d.set_ylabel(r"$U_D / U_{D,\mathrm{clean}}$")
     ax_d.set_xlabel(r"$\chi \equiv k = R_{\mathrm{core}} / R_{\mathrm{drop}}$")
 
-    # --------------------------------------------------------------------------
     # DIRECT IN-PLOT LABELS & ARROWS (EXPLICIT COLORS & SHAPES)
-    # --------------------------------------------------------------------------
     if mode_lbl == 'A1=0_B1=1':
         # Panel (a): Swimmer Velocity Ratio
         if pe_val == 0.1:
@@ -259,10 +243,10 @@ def plot_single_pe_ratios(records, mode_lbl, pe_val, optimized=True):
                               framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
         ax_s.add_artist(leg_lam)
 
-        leg_ma = ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
-                             loc='lower left', bbox_to_anchor=(0.03, 0.05),
-                             fontsize=8.0, title_fontsize=8.5,
-                             framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
+        ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
+                    loc='lower left', bbox_to_anchor=(0.03, 0.05),
+                    fontsize=8.0, title_fontsize=8.5,
+                    framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
     else:
         leg_lam = ax_s.legend(handles=h_lam, title=r"$\mathbf{Viscosity\; Ratio\; \lambda}$",
                               loc='lower left', bbox_to_anchor=(0.03, 0.04),
@@ -270,10 +254,10 @@ def plot_single_pe_ratios(records, mode_lbl, pe_val, optimized=True):
                               framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
         ax_s.add_artist(leg_lam)
 
-        leg_ma = ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
-                             loc='lower left', bbox_to_anchor=(0.35, 0.04),
-                             fontsize=8.0, title_fontsize=8.5,
-                             framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
+        ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
+                    loc='lower left', bbox_to_anchor=(0.35, 0.04),
+                    fontsize=8.0, title_fontsize=8.5,
+                    framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
 
     # Critical Ma Box in Panel (b) lower right
     ax_d.text(0.96, 0.05, MAC_ANNOTATION_TEXT, transform=ax_d.transAxes, fontsize=8.2,
@@ -294,7 +278,7 @@ def plot_single_pe_ratios(records, mode_lbl, pe_val, optimized=True):
 
 
 # ==============================================================================
-# 2. REMAKE DIRECT VELOCITY PLOTS (1-to-1 REPLICA OF SHAIK ET AL. FIG 1)
+# REMAKE DIRECT VELOCITY PLOTS (1-to-1 REPLICA OF SHAIK ET AL. FIG 1)
 # ==============================================================================
 def plot_direct_velocities(records, mode_lbl, pe_val, optimized=True):
     fig, (ax_s, ax_d) = plt.subplots(1, 2, figsize=(13.5, 5.6), dpi=300)
@@ -404,10 +388,10 @@ def plot_direct_velocities(records, mode_lbl, pe_val, optimized=True):
                               framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.4)
         ax_s.add_artist(leg_lam)
 
-        leg_ma = ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
-                             loc='lower left', bbox_to_anchor=(0.03, 0.03),
-                             fontsize=7.8, title_fontsize=8.2,
-                             framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.4)
+        ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
+                    loc='lower left', bbox_to_anchor=(0.03, 0.03),
+                    fontsize=7.8, title_fontsize=8.2,
+                    framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.4)
     else:
         leg_lam = ax_s.legend(handles=h_lam, title=r"$\mathbf{Viscosity\; Ratio\; \lambda}$",
                               loc='lower left', bbox_to_anchor=(0.03, 0.04),
@@ -415,10 +399,10 @@ def plot_direct_velocities(records, mode_lbl, pe_val, optimized=True):
                               framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
         ax_s.add_artist(leg_lam)
 
-        leg_ma = ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
-                             loc='lower left', bbox_to_anchor=(0.35, 0.04),
-                             fontsize=8.0, title_fontsize=8.5,
-                             framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
+        ax_s.legend(handles=h_ma, title=r"$\mathbf{Marangoni\; Number\; Ma}$",
+                    loc='lower left', bbox_to_anchor=(0.35, 0.04),
+                    fontsize=8.0, title_fontsize=8.5,
+                    framealpha=0.95, facecolor='white', edgecolor='black', borderpad=0.5)
 
     # Critical Ma Box in Panel (b) lower right
     ax_d.text(0.96, 0.05, MAC_ANNOTATION_TEXT, transform=ax_d.transAxes, fontsize=8.2,
@@ -438,7 +422,7 @@ def plot_direct_velocities(records, mode_lbl, pe_val, optimized=True):
 
 
 # ==============================================================================
-# 3. REMAKE MASTER 3x2 GRID FIGURES WITH IN-PLOT LABELS
+# REMAKE MASTER 3x2 GRID FIGURES WITH IN-PLOT LABELS
 # ==============================================================================
 def plot_master_grid_ratios(records, mode_lbl):
     pes = [0.1, 1.0, 10.0]
@@ -560,7 +544,7 @@ def plot_master_grid_ratios(records, mode_lbl):
 
 
 # ==============================================================================
-# 4. REMAKE PE=10 DIAGNOSTIC COMPARISON FIGURES
+# remake pe=10 diagnostic comparison figures
 # ==============================================================================
 def plot_pe10_comparison(records, mode_lbl):
     fig, axs = plt.subplots(2, 2, figsize=(14, 11), dpi=300)
@@ -694,9 +678,7 @@ def remake_all():
         f_comp = plot_pe10_comparison(records, mode_lbl)
         all_generated.extend([f_grid, f_comp])
 
-    print("\n" + "=" * 80)
-    print(f" SUCCESSFULLY REMADE ALL {len(all_generated)} PUBLICATION FIGURES WITH DIRECT IN-PLOT LABELS! ".center(80, "="))
-    print("=" * 80 + "\n")
+    print(f"Remade {len(all_generated)} figures")
 
 if __name__ == "__main__":
     remake_all()

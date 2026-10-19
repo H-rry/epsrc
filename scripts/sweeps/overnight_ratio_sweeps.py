@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 """
-overnight_ratio_sweeps.py
-
-Autonomous sweep engine replicating and extending Shaik et al. (JFM 2018, 851, 187-230, Fig 1).
-Computes the velocity ratios:
-    U_S / U_{S,clean}   and   U_D / U_{D,clean}
-as functions of core radius ratio k in [0.05, 0.95] across:
-    viscosity ratios: lambda in {0.1, 1.0, 10.0}
-    Marangoni numbers: Ma in {0.1, 1.0, 10.0} (plus clean baseline Ma = 0)
-    Peclet numbers:    Pe in {0.1, 1.0, 10.0}
-for active squirmers:
-    Mode 1: A_1 = 1, B_1 = 1 (pusher/puller active swimmer)
-    Mode 2: A_1 = 0, B_1 = 1 (neutral squirmer, matching paper's model)
+U_S/U_S,clean and U_D/U_D,clean against k in [0.05, 0.95], as in Shaik et al.
+(JFM 2018, 851, 187-230), Fig. 1, for
+    Pe     = 0.1, 1, 10
+    lambda = 0.1, 1, 10
+    Ma     = 0.1, 1, 10 (plus the clean drop, Ma = 0)
+and two squirmers: A_1 = 1, B_1 = 1 and A_1 = 0, B_1 = 1 (the case in the paper).
+Results go to data/ratio_sweeps/; points already there are skipped, so the run can be
+restarted.
 """
 
 import os
-import sys
 import time
 import csv
 import numpy as np
@@ -28,7 +23,7 @@ from squirmer_drop.paths import RATIO_SWEEPS_DIR
 def run_full_suite():
     output_dir = RATIO_SWEEPS_DIR
     os.makedirs(output_dir, exist_ok=True)
-    
+
     csv_master = os.path.join(output_dir, "ratio_sweep_master.csv")
     fieldnames = [
         "mode_label", "A_1", "B_1", "Pe", "lambda", "Ma", "k",
@@ -36,7 +31,7 @@ def run_full_suite():
         "ratio_U_s", "ratio_U_d", "U_s_norm", "U_d_norm",
         "iterations", "residual", "converged"
     ]
-    
+
     # Load existing records for resume capability
     existing_keys = set()
     if os.path.exists(csv_master) and os.path.getsize(csv_master) > 0:
@@ -69,9 +64,7 @@ def run_full_suite():
     current_sweep = 0
     start_time = time.time()
 
-    print("=" * 80)
-    print(" SHAIK ET AL. (2018) RATIO SWEEP ENGINE ".center(80, "="))
-    print("=" * 80)
+    print("Ratio sweeps")
     print(f"Configs     : {[c['label'] for c in configs]}")
     print(f"Peclet (Pe) : {pes}")
     print(f"Lambdas     : {lambdas}")
@@ -79,7 +72,6 @@ def run_full_suite():
     print(f"k points    : {len(ks)} points from {ks[0]} to {ks[-1]}")
     print(f"Total series: {total_sweeps} parametric curves")
     print(f"Output dir  : {output_dir}")
-    print("=" * 80 + "\n")
 
     for config in configs:
         lbl = config["label"]
@@ -105,7 +97,7 @@ def run_full_suite():
                 for k_val in ks:
                     Us_clean, Ud_clean, x_clean = solve_clean_drop(N, k_val, l_val, A_n, B_n)
                     clean_cache[k_val] = (Us_clean, Ud_clean)
-                    
+
                     # Record clean baseline if not already present
                     key_clean = (lbl, pe, l_val, 0.0, k_val)
                     if key_clean not in existing_keys:
@@ -126,11 +118,11 @@ def run_full_suite():
                 # 2. Sweeps for each Ma > 0
                 for ma in mas:
                     current_sweep += 1
-                    
+
                     # Check if all k for this curve already exist
                     needed_ks = [k_val for k_val in ks if (lbl, pe, l_val, ma, k_val) not in existing_keys]
                     if not needed_ks:
-                        print(f"[{current_sweep:2d}/{total_sweeps:2d}] Mode={lbl} | Pe={pe:4.1f} | lambda={l_val:4.1f} | Ma={ma:4.1f} ... [CACHED / ALREADY DONE]")
+                        print(f"[{current_sweep:2d}/{total_sweeps:2d}] Mode={lbl} | Pe={pe:4.1f} | lambda={l_val:4.1f} | Ma={ma:4.1f} (cached)")
                         continue
 
                     t0 = time.time()
@@ -182,10 +174,8 @@ def run_full_suite():
                     print(f" Converged {conv_count}/{len(ks)} in {elapsed:.2f}s")
 
     total_time = time.time() - start_time
-    print("\n" + "=" * 80)
-    print(f" SWEEP CAMPAIGN COMPLETED IN {total_time:.2f} SECONDS ({total_time/60:.2f} MINUTES) ".center(80, "="))
+    print(f"Finished in {total_time/60:.1f} min")
     print(f" Master dataset saved to: {csv_master}")
-    print("=" * 80 + "\n")
 
 
 if __name__ == "__main__":

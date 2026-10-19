@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
 """
-sweep_critical_Ma_extended.py
-
-Comprehensive Critical Marangoni Number (Ma_c) Computation:
-1. Full (lambda, k) 2D grid for Pusher/Puller active squirmer (A_1 = 1, B_1 = 1) at Pe = 0.1
-   Lambdas: [0.1, 0.5, 1.0, 2.0, 10.0]
-   ks     : [0.2, 0.4, 0.6, 0.8]
-   Threshold: 2.0% relative error relative to analytical Stokes perturbation solution.
-   Outputs:
-     data/critical_Ma/grid/critical_Ma_grid_A1_B1.csv
-     data/critical_Ma/grid/critical_Ma_matrix_Us_A1_B1.csv
-     data/critical_Ma/grid/critical_Ma_matrix_Ud_A1_B1.csv
-
-2. Multi-Pe Scaling Campaign:
-   Sweep Pe in [0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0]
-   For lambda in [0.1, 1.0, 10.0] at benchmark k = 0.4
-   For both Neutral (A_1 = 0) and Pusher/Puller (A_1 = 1)
-   Outputs:
-     data/critical_Ma/critical_Ma_vs_Pe_scaling.csv
+1. Critical Ma over (lambda, k) for A_1 = 1, B_1 = 1 at Pe = 0.1, using a 2% error
+   threshold against the asymptotic solution:
+       lambda = 0.1, 0.5, 1, 2, 10;  k = 0.2, 0.4, 0.6, 0.8
+   Output: data/critical_Ma/grid/critical_Ma_grid_A1_B1.csv
+2. Critical Ma against Pe for both modes, to check that Ma_c ~ 1/Pe.
+   Output: data/critical_Ma/critical_Ma_vs_Pe_scaling.csv
 """
 
 import os
-import sys
 import csv
 import time
 import numpy as np
@@ -42,9 +29,7 @@ def run_pusher_puller_grid():
     A_n[0] = 1.0
     B_n[0] = 1.0
 
-    print("=" * 80)
-    print(" CRITICAL Ma GRID FOR PUSHER/PULLER SQUIRMER (A_1=1, B_1=1) ".center(80, "="))
-    print("=" * 80)
+    print("Critical Ma grid, A_1=1, B_1=1")
 
     combined_csv = os.path.join(output_dir, "critical_Ma_grid_A1_B1.csv")
     existing_done = set()
@@ -66,7 +51,7 @@ def run_pusher_puller_grid():
         for k_idx, k in enumerate(ks):
             pt_idx += 1
             if (L, k) in existing_done:
-                print(f"[{pt_idx}/{total_points}] (lambda={L}, k={k}) ... [CACHED]")
+                print(f"[{pt_idx}/{total_points}] (lambda={L}, k={k}) (cached)")
                 continue
 
             print(f"\n>>> [{pt_idx}/{total_points}] Computing Ma_crit for A1=1, B1=1 @ lambda = {L}, k = {k} <<<")
@@ -104,7 +89,7 @@ def run_pusher_puller_grid():
 
             print(f"  --> Done in {elapsed:.1f}s | Ma_c(Us)={Ma_crit_Us:.3f}, Ma_c(Ud)={Ma_crit_Ud:.3f}")
 
-    print(f"\n[SAVED] Pusher/Puller Grid: {combined_csv}")
+    print(f"\nSaved Pusher/Puller Grid: {combined_csv}")
 
 
 def run_pe_scaling_sweeps():
@@ -140,9 +125,7 @@ def run_pe_scaling_sweeps():
     benchmark_k = 0.4
     N = 5
 
-    print("\n" + "=" * 80)
-    print(" CRITICAL Ma SCALING vs SURFACE PECLET NUMBER (Pe) ".center(80, "="))
-    print("=" * 80)
+    print("Critical Ma vs Pe")
 
     total = len(modes) * len(lambdas) * len(pes)
     idx = 0
@@ -162,7 +145,7 @@ def run_pe_scaling_sweeps():
                 idx += 1
                 key = (lbl, L, benchmark_k, pe)
                 if key in existing_done:
-                    print(f"[{idx}/{total}] {lbl} | lam={L} | Pe={pe} ... [CACHED]")
+                    print(f"[{idx}/{total}] {lbl} | lam={L} | Pe={pe} (cached)")
                     continue
 
                 t0 = time.time()
@@ -183,7 +166,7 @@ def run_pe_scaling_sweeps():
                         A_n=A_n, B_n=B_n, target_err=2.0, starting_ma=Ma_c_Ud, Pe=pe
                     )
                 except Exception as e:
-                    print(f"[FAILED: {e}]")
+                    print(f"failed: {e}")
                     continue
 
                 pe_mac_ud = pe * Ma_c_Ud
@@ -204,7 +187,7 @@ def run_pe_scaling_sweeps():
                 existing_done.add(key)
                 print(f"Done in {elapsed:.1f}s | Ma_c(Ud)={Ma_c_Ud:.4f} (Pe*Ma_c={pe_mac_ud:.4f}), Ma_c(Us)={Ma_c_Us:.4f}")
 
-    print(f"\n[SAVED] Pe scaling dataset: {scaling_csv}")
+    print(f"\nSaved Pe scaling dataset: {scaling_csv}")
 
 if __name__ == "__main__":
     run_pusher_puller_grid()

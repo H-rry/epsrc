@@ -1,6 +1,5 @@
 import os
 import csv
-import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -25,8 +24,8 @@ def read_summary(path):
             Ma_Ud.append(float(row['critical_Ma_Ud']))
     # Sort by lambda
     sorted_indices = np.argsort(Lambda_list)
-    return (np.array(Lambda_list)[sorted_indices], 
-            np.array(Ma_Us)[sorted_indices], 
+    return (np.array(Lambda_list)[sorted_indices],
+            np.array(Ma_Us)[sorted_indices],
             np.array(Ma_Ud)[sorted_indices])
 
 # Read data
@@ -60,9 +59,9 @@ plt.rcParams.update({
 fig, ax = plt.subplots(figsize=(10, 8))
 
 # Plot Set 1 (A1=1, B1=1) - Solid lines, filled markers
-ax.plot(L1, Us1, 'o-', color='#2563eb', linewidth=2.0, markersize=8, 
+ax.plot(L1, Us1, 'o-', color='#2563eb', linewidth=2.0, markersize=8,
         label=r"Squirmer Velocity $U_s$ ($A_1=1, B_1=1$)")
-ax.plot(L1, Ud1, 's-', color='#ef4444', linewidth=2.0, markersize=8, 
+ax.plot(L1, Ud1, 's-', color='#ef4444', linewidth=2.0, markersize=8,
         label=r"Drop Velocity $U_d$ ($A_1=1, B_1=1$)")
 
 # Plot Set 2 (A1=0, B1=1) - Dashed lines, open markers
@@ -90,10 +89,3 @@ plt.savefig(save_path, dpi=250)
 plt.close(fig)
 print(f"Saved comparison plot to: {save_path}")
 
-# Output kept in project directory (home dir copy removed)
-# home_dir = os.path.expanduser("~")
-# try:
-#     shutil.copy(save_path, os.path.join(home_dir, filename))
-#     print(f"Successfully copied comparison plot to home folder: {home_dir}")
-# except Exception as e:
-#     print(f"Error copying to home folder: {e}")
